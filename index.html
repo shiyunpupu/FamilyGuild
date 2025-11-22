@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>家庭公会：V5协议</title>
-    
+    <title>家庭公会：V7.0 云端版</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Russo+One&display=swap" rel="stylesheet">
-    
+
     <style>
-        /* ================= 核心宇宙设定 (CSS 保持不变) ================= */
+        /* ================= 核心宇宙设定 ================= */
         :root {
             --neon-blue: #00f3ff;
             --neon-purple: #bc13fe;
@@ -16,15 +16,13 @@
             --neon-gold: #ffe600;
             --bg-dark: #050510;
             --glass: rgba(10, 20, 40, 0.75);
-            
-            /* 动态主题变量 */
             --theme-color: var(--neon-blue);
         }
 
         * { box-sizing: border-box; }
 
         body {
-            font-family: 'Orbitron', 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            font-family: 'Orbitron', 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background-color: var(--bg-dark);
             color: #fff;
             margin: 0;
@@ -32,7 +30,6 @@
             padding-bottom: 100px;
             overflow-x: hidden;
             min-height: 100vh;
-            /* 扫描线特效 */
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 2px, 3px 100%;
         }
@@ -42,7 +39,7 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1;
-            background: 
+            background:
                 radial-gradient(circle at 50% 0%, #1a1a3a 0%, transparent 70%),
                 linear-gradient(transparent 0%, var(--bg-dark) 100%);
             perspective: 1000px;
@@ -53,7 +50,7 @@
             left: -50%;
             width: 200%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(var(--theme-color) 1px, transparent 1px),
                 linear-gradient(90deg, var(--theme-color) 1px, transparent 1px);
             background-size: 40px 40px;
@@ -66,8 +63,42 @@
 
         @keyframes gridMove { 0% { transform: rotateX(60deg) translateY(0); } 100% { transform: rotateX(60deg) translateY(40px); } }
 
-        /* ================= UI 组件 ================= */
+        /* 顶部工具栏 */
+        .top-bar {
+            display: flex;
+            justify-content: space-between; /* 改为两端对齐 */
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .status-indicator {
+            font-size: 0.7rem;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: #555;
+            box-shadow: 0 0 5px #555;
+        }
+        .status-dot.online { background: #0f0; box-shadow: 0 0 8px #0f0; }
+        .status-dot.syncing { background: #ff0; box-shadow: 0 0 8px #ff0; animation: blink 1s infinite; }
 
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        .rules-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--theme-color);
+            color: var(--theme-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        /* HUD 面板 */
         .hud-panel {
             border: 1px solid var(--theme-color);
             background: var(--glass);
@@ -79,284 +110,250 @@
             margin-bottom: 25px;
             overflow: hidden;
         }
-        .hud-corner {
-            position: absolute;
-            width: 10px; height: 10px;
-            border: 2px solid var(--theme-color);
-            transition: all 0.3s;
-        }
+        .hud-corner { position: absolute; width: 10px; height: 10px; border: 2px solid var(--theme-color); }
         .tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
         .tr { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
         .bl { bottom: -1px; left: -1px; border-right: 0; border-top: 0; }
         .br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
 
         .profile-row { display: flex; align-items: center; gap: 15px; z-index: 2; position: relative; }
-        
+
         .avatar-box {
-            width: 70px; height: 70px;
-            border-radius: 50%;
+            width: 70px; height: 70px; border-radius: 50%;
             border: 2px solid var(--theme-color);
             background: rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center;
-            font-size: 2.5rem;
-            position: relative;
+            font-size: 2.5rem; position: relative;
             box-shadow: 0 0 10px var(--theme-color);
         }
         .avatar-ring {
             position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
-            border: 1px dashed var(--theme-color);
-            border-radius: 50%;
+            border: 1px dashed var(--theme-color); border-radius: 50%;
             animation: spin 10s linear infinite;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
         .stats-col { flex: 1; }
-        .hero-name { font-family: 'Russo One', 'PingFang SC', sans-serif; font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 5px var(--theme-color); }
-        .hero-class { font-size: 0.7rem; color: #aaa; letter-spacing: 2px; margin-bottom: 5px; }
+        .hero-name { font-family: 'Russo One', 'PingFang SC', sans-serif; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 0 5px var(--theme-color); }
+        .hero-class { font-size: 0.7rem; color: #aaa; letter-spacing: 1px; margin-bottom: 5px; }
 
         .xp-wrapper { margin-top: 5px; position: relative; }
         .xp-bg { background: #111; height: 8px; border: 1px solid #333; transform: skewX(-20deg); }
-        .xp-fill { 
-            height: 100%; background: var(--theme-color); width: 0%; 
-            box-shadow: 0 0 8px var(--theme-color);
-            transition: width 0.5s ease;
-        }
-        .xp-txt { font-size: 0.6rem; position: absolute; right: 0; top: -12px; color: var(--theme-color); }
+        .xp-fill { height: 100%; background: var(--theme-color); width: 0%; box-shadow: 0 0 8px var(--theme-color); transition: width 0.5s ease; }
+        .xp-txt { font-size: 0.6rem; position: absolute; right: 0; top: -14px; color: var(--theme-color); font-weight: bold; text-shadow: 0 0 2px #000;}
 
-        .coin-hud {
-            text-align: right;
-            border-left: 1px solid rgba(255,255,255,0.1);
-            padding-left: 15px;
-        }
-        .coin-val { 
-            font-size: 2rem; font-weight: 900; color: var(--neon-gold); 
-            text-shadow: 0 0 10px var(--neon-gold); 
-            font-family: 'Russo One', sans-serif;
-        }
+        .coin-hud { text-align: right; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 15px; }
+        .coin-val { font-size: 2rem; font-weight: 900; color: var(--neon-gold); text-shadow: 0 0 10px var(--neon-gold); font-family: 'Russo One', sans-serif; }
         .coin-lbl { font-size: 0.6rem; color: #fff; opacity: 0.5; letter-spacing: 2px; }
 
-        .switch-deck {
-            display: flex; gap: 15px; margin-bottom: 20px;
-        }
+        /* 切换按钮 */
+        .switch-deck { display: flex; gap: 15px; margin-bottom: 20px; }
         .cyber-btn {
-            flex: 1;
-            background: rgba(0,0,0,0.6);
-            border: 1px solid #333;
-            color: #555;
-            padding: 12px;
-            font-family: 'Orbitron', 'PingFang SC', sans-serif;
-            font-weight: bold;
-            text-transform: uppercase;
+            flex: 1; background: rgba(0,0,0,0.6); border: 1px solid #333; color: #555; padding: 12px;
+            font-family: 'Orbitron', 'PingFang SC', sans-serif; font-weight: bold; text-transform: uppercase;
             clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
-            transition: all 0.3s;
-            position: relative;
+            transition: all 0.3s; position: relative;
         }
         .cyber-btn.active {
-            background: rgba(0, 243, 255, 0.1);
-            border-color: var(--theme-color);
-            color: var(--theme-color);
-            text-shadow: 0 0 5px var(--theme-color);
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            background: rgba(0, 243, 255, 0.1); border-color: var(--theme-color); color: var(--theme-color);
+            text-shadow: 0 0 5px var(--theme-color); box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        .cyber-btn.active::before {
-            content: ''; position: absolute; left: 0; bottom: 0; width: 10px; height: 10px; background: var(--theme-color);
-        }
+        .cyber-btn.active::before { content: ''; position: absolute; left: 0; bottom: 0; width: 10px; height: 10px; background: var(--theme-color); }
 
-        .nav-deck {
-            display: flex; justify-content: space-between;
-            border-bottom: 2px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-            padding-bottom: 5px;
-        }
-        .nav-item {
-            color: #666;
-            font-size: 0.9rem;
-            padding: 8px 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            position: relative;
-        }
-        .nav-item.active {
-            color: #fff;
-            text-shadow: 0 0 8px #fff;
-        }
-        .nav-item.active::after {
-            content: ''; position: absolute; bottom: -7px; left: 0; width: 100%; height: 2px;
-            background: var(--theme-color);
-            box-shadow: 0 -2px 5px var(--theme-color);
-        }
+        /* 导航 */
+        .nav-deck { display: flex; justify-content: space-between; border-bottom: 2px solid rgba(255,255,255,0.1); margin-bottom: 20px; padding-bottom: 5px; }
+        .nav-item { color: #666; font-size: 0.9rem; padding: 8px 15px; cursor: pointer; transition: all 0.3s; position: relative; }
+        .nav-item.active { color: #fff; text-shadow: 0 0 8px #fff; }
+        .nav-item.active::after { content: ''; position: absolute; bottom: -7px; left: 0; width: 100%; height: 2px; background: var(--theme-color); box-shadow: 0 -2px 5px var(--theme-color); }
 
-        .grid-area {
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
-            gap: 15px;
-        }
+        /* 网格布局 */
+        .grid-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+
         .holo-card {
             background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.4) 100%);
-            border: 1px solid rgba(255,255,255,0.1);
-            padding: 15px;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s;
-            cursor: pointer;
-            display: flex; flex-direction: column; align-items: center; text-align: center;
+            border: 1px solid rgba(255,255,255,0.1); padding: 15px; position: relative;
+            overflow: hidden; transition: transform 0.2s, box-shadow 0.3s, border-color 0.3s; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; text-align: center; min-height: 150px;
         }
-        .holo-card::before { 
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--theme-color), transparent);
+        .holo-card:hover { box-shadow: 0 0 15px var(--theme-color), inset 0 0 10px rgba(0,0,0,0.5); border-color: var(--theme-color); transform: translateY(-2px) scale(1.02); }
+
+        @keyframes successGlow {
+            0% { box-shadow: 0 0 0px var(--theme-color); border-color: var(--theme-color); }
+            50% { box-shadow: 0 0 20px var(--neon-gold), inset 0 0 15px var(--neon-gold); border-color: var(--neon-gold); }
+            100% { box-shadow: 0 0 0px var(--theme-color); border-color: rgba(255,255,255,0.1); }
         }
-        .holo-card:active { transform: scale(0.95); border-color: var(--theme-color); }
+        .holo-card.success-flash { animation: successGlow 0.5s ease-out; }
 
         .holo-icon { font-size: 2.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
         .holo-title { font-size: 0.9rem; font-weight: bold; color: #fff; margin-bottom: 5px; line-height: 1.2; }
         .holo-desc { font-size: 0.6rem; color: #888; margin-bottom: 10px; flex-grow: 1; }
-        
-        .reward-tag {
-            background: rgba(0,0,0,0.6);
-            border: 1px solid var(--theme-color);
-            padding: 4px 10px;
-            font-size: 0.8rem;
-            color: var(--theme-color);
-            font-weight: bold;
-            box-shadow: 0 0 5px var(--theme-color);
-        }
-        .cost-tag { border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 5px var(--neon-red); }
 
+        .reward-tag {
+            background: rgba(0,0,0,0.6); border: 1px solid var(--theme-color); padding: 4px 10px;
+            font-size: 0.8rem; color: var(--theme-color); font-weight: bold; box-shadow: 0 0 5px var(--theme-color);
+        }
+        .holo-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--theme-color), transparent); }
+        .holo-card:active { transform: scale(0.95); border-color: var(--theme-color); }
+        .cost-tag { border-color: var(--neon-red); color: var(--neon-red); box-shadow: 0 0 5px var(--neon-red); }
         .shop-border { border: 1px dashed var(--neon-gold); }
-        
         .footer { text-align: center; margin-top: 40px; opacity: 0.5; font-size: 0.7rem; letter-spacing: 2px; }
+
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 1000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: var(--bg-dark); border: 2px solid var(--theme-color); border-radius: 15px;
+            width: 90%; max-width: 500px; max-height: 80vh; overflow-y: auto; padding: 20px;
+            box-shadow: 0 0 30px var(--theme-color); position: relative; color: #ddd; font-size: 0.9rem; line-height: 1.6;
+        }
+        .modal-content h2 { color: var(--theme-color); margin-top: 0; text-align: center; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .modal-content h3 { color: #fff; margin-top: 20px; margin-bottom: 10px; border-left: 3px solid var(--theme-color); padding-left: 10px; }
+        .level-table { width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 0.8rem; }
+        .level-table th, .level-table td { border: 1px solid #333; padding: 8px; text-align: left; }
+        .level-table th { background: rgba(255,255,255,0.1); color: var(--theme-color); }
+        .role-header { color: var(--neon-blue); margin-top: 10px; margin-bottom: 5px; font-weight: bold; }
+        .role-header.warrior { color: var(--neon-red); }
+        .close-modal-btn {
+            display: block; width: 100%; padding: 12px; background: var(--theme-color); color: #000; font-weight: bold;
+            border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; font-family: 'Orbitron', sans-serif;
+        }
+        .close-modal-btn:active { opacity: 0.8; }
     </style>
 </head>
 <body>
 
-    <div class="bg-animation">
-        <div class="grid-floor"></div>
+    <div class="bg-animation"><div class="grid-floor"></div></div>
+
+    <div class="top-bar">
+        <div class="status-indicator">
+            <div class="status-dot" id="net-status"></div>
+            <span id="net-text">检测中...</span>
+        </div>
+        <div class="rules-btn" onclick="openRules()">📜 玩家指南</div>
     </div>
 
     <div class="switch-deck">
-        <div id="btn-mage" class="cyber-btn active" onclick="switchRole('mage')">
-            🔹 施常钰 (哥哥)
-        </div>
-        <div id="btn-warrior" class="cyber-btn" onclick="switchRole('warrior')">
-            🔸 施常澍 (弟弟)
-        </div>
+        <div id="btn-mage" class="cyber-btn active" onclick="handleRoleSwitch('mage')">🔹 奥术大法师 (施常钰)</div>
+        <div id="btn-warrior" class="cyber-btn" onclick="handleRoleSwitch('warrior')">🔸 荣耀狂战士 (施常澍)</div>
     </div>
 
     <div class="hud-panel">
-        <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
-        <div class="hud-corner bl"></div><div class="hud-corner br"></div>
-
+        <div class="hud-corner tl"></div><div class="hud-corner tr"></div><div class="hud-corner bl"></div><div class="hud-corner br"></div>
         <div class="profile-row">
-            <div class="avatar-box">
-                <span id="ui-avatar">🧙‍♂️</span>
-                <div class="avatar-ring"></div>
-            </div>
+            <div class="avatar-box"><span id="ui-avatar">🧙‍♂️</span><div class="avatar-ring"></div></div>
             <div class="stats-col">
-                <div class="hero-name" id="ui-name">角色名</div>
-                <div class="hero-class" id="ui-title">当前头衔</div>
+                <div class="hero-name" id="ui-name">Loading...</div>
+                <div class="hero-class" id="ui-title">...</div>
                 <div class="xp-wrapper">
-                    <div class="xp-txt" id="ui-xp-txt">0/100</div>
+                    <div class="xp-txt" id="ui-xp-txt">0 / 0 XP</div>
                     <div class="xp-bg"><div class="xp-fill" id="ui-xp-bar"></div></div>
                 </div>
             </div>
-            <div class="coin-hud">
-                <div class="coin-val" id="ui-gold">0</div>
-                <div class="coin-lbl">公会金币</div>
-            </div>
+            <div class="coin-hud"><div class="coin-val" id="ui-gold">0</div><div class="coin-lbl">公会金币</div></div>
         </div>
     </div>
 
     <div class="nav-deck">
-        <div class="nav-item active" id="tab-daily" onclick="switchTab('daily')">日常任务</div>
-        <div class="nav-item" id="tab-weekend" onclick="switchTab('weekend')">周末挑战</div>
-        <div class="nav-item" id="tab-shop" onclick="switchTab('shop')">积分军械库</div>
+        <div class="nav-item active" id="tab-daily" onclick="handleTabSwitch('daily')">日常任务</div>
+        <div class="nav-item" id="tab-weekend" onclick="handleTabSwitch('weekend')">周末挑战</div>
+        <div class="nav-item" id="tab-shop" onclick="handleTabSwitch('shop')">积分军械库</div>
     </div>
 
-    <div id="content-area" class="grid-area">
+    <div id="content-area" class="grid-area"></div>
+
+    <div id="rules-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>📜 英雄公会玩家指南</h2>
+            <h3>1. 晋升阶梯 (Level Up)</h3>
+            <p>积累经验值 (XP) 提升等级，获得更帅气的头衔！</p>
+            <div id="level-table-container"></div>
+            <h3>2. 核心法则</h3>
+            <ul>
+                <li><strong>G (金币)</strong>：严禁私自操作，必须由父母输入密码授权！</li>
+                <li><strong>云端同步</strong>：数据会实时保存在服务器，爸爸在公司也能看到！</li>
+            </ul>
+            <h3>3. 幸运补给箱 (概率)</h3>
+            <ul>
+                <li>💨 50%：空箱子</li><li>💰 30%：返还 3 金币</li><li>🥤 15%：饮料一瓶</li><li>🧧 5%：现金红包 5元</li>
+            </ul>
+            <button class="close-modal-btn" onclick="closeRules()">我知道了</button>
         </div>
-
-    <div class="footer">
-        系统 V5.7 // 密码保护与定制版<br>
-        <a href="#" onclick="resetData()" style="color:#555; text-decoration:none">[ 重置系统 ]</a>
     </div>
+
+    <div class="footer">系统 V7.0 // 云端同步版<br><a href="#" onclick="resetData()" style="color:#555; text-decoration:none">[ 重置系统 ]</a></div>
 
     <script>
-        // ================= 数据配置 (V5.7 定制版) =================
+        // ============================================================
+        // ⚠️⚠️⚠️ 请在此处填入第一步部署 Worker 获得的网址 ⚠️⚠️⚠️
+        // 例如: const API_URL = "https://family-api.zhangsan.workers.dev";
+        // ============================================================
 
-        // 【！！！重要设置！！！】
-        // 请在此处修改您的家长授权码 (PIN)。建议使用简单的四位数字。
-        const PARENT_PIN = "8888"; 
-        
+        const API_URL = "https://family-api.shiyunpupu.workers.dev/";
+
+        // ============================================================
+
+        const PARENT_PIN = "888999";
+
+        // 游戏配置 (保持 V6.4 的最新配置)
         const gameData = {
             mage: {
-                name: "施常钰",
-                avatar: "🧙‍♂️",
-                color: "#00f3ff", 
-                levels: [
-                    { xp: 0, title: "见习学徒" }, { xp: 100, title: "秘法师" }, 
-                    { xp: 300, title: "大魔导师" }, { xp: 600, title: "星际贤者" }
-                ],
-                // 施常钰 - 日常任务 (10项) - 侧重自律、学习、高阶习惯
+                name: "奥术大法师 (施常钰)", avatar: "🧙‍♂️", color: "#00f3ff",
+                levels: [{ xp: 0, title: "Lv.1 见习魔法学徒" }, { xp: 100, title: "Lv.2 秘法操控者" }, { xp: 300, title: "Lv.3 皇家首席法师" }, { xp: 600, title: "Lv.MAX 全知全能贤者" }],
                 dailyTasks: [
                     { name: "个人清洁", icon: "🧼", gold: 1, xp: 3, desc: "早晚主动洗脸、刷牙、自理" },
                     { name: "晨间协议: 早起", icon: "⏰", gold: 1, xp: 5, desc: "7:10前完成启动" },
                     { name: "装备就绪", icon: "👚", gold: 1, xp: 3, desc: "整理明日衣物与物品" },
                     { name: "空间整理", icon: "🧹", gold: 1, xp: 5, desc: "整理书桌或床铺" },
-                    
                     { name: "数据录入: 作业", icon: "💠", gold: 3, xp: 10, desc: "准确率95%+" },
-                    { name: "学习模块升级", icon: "💡", gold: 2, xp: 10, desc: "自学一页课外知识" },
-                    { name: "自律规划", icon: "📝", gold: 2, xp: 5, desc: "写下并执行今日3项主要任务" }, 
-
+                    { name: "学习模块升级", icon: "💡", gold: 2, xp: 10, desc: "完成作业以外的学习资料" },
+                    { name: "情报汇报", icon: "📰", gold: 2, xp: 5, desc: "阅读新闻/科普并向家人分享" },
                     { name: "基地维护: 家务", icon: "🔧", gold: 2, xp: 5, desc: "洗碗/倒垃圾等主动家务" },
                     { name: "体能训练", icon: "🏃", gold: 2, xp: 5, desc: "跳绳/跑步等运动30分钟" },
-                    { name: "冥想静心", icon: "🧘", gold: 1, xp: 3, desc: "安静思考或冥想5分钟" }
+                    { name: "视力护盾", icon: "👀", gold: 1, xp: 3, desc: "认真做眼保健操或远眺" },
+                    { name: "维生素补给", icon: "🍎", gold: 1, xp: 3, desc: "主动吃水果" }
                 ],
                 weekendTasks: [
                     { name: "户外探索", icon: "🚀", gold: 10, xp: 20, desc: "外部环境活动2小时+" },
                     { name: "深度清洁", icon: "🧼", gold: 15, xp: 30, desc: "大扫除某一指定区域" },
                     { name: "任务清零", icon: "⚡", gold: 5, xp: 10, desc: "周六中午前完成所有日常任务" },
-                    { name: "同盟建立: 社交", icon: "🤝", gold: 8, xp: 15, desc: "与人类伙伴或家人互动" },
+                    { name: "同盟建立: 社交", icon: "🤝", gold: 8, xp: 15, desc: "找朋友或同学一起玩" },
                     { name: "烹饪补给", icon: "👨‍🍳", gold: 12, xp: 25, desc: "协助制作一顿饭菜" },
-                    { name: "学长互助", icon: "🧑‍🤝‍🧑", gold: 15, xp: 30, desc: "主动帮助弟弟学习或解决问题" }, 
+                    { name: "学长互助", icon: "🧑‍🤝‍🧑", gold: 15, xp: 30, desc: "主动帮助弟弟学习或解决问题" },
                     { name: "艺术创作", icon: "🎨", gold: 10, xp: 20, desc: "完成一幅画作或手工" },
-                    { name: "个人反思", icon: "🧠", gold: 8, xp: 15, desc: "写下本周3个进步与3个待改进点" }, 
-                    { name: "深度阅读", icon: "📚", gold: 10, xp: 20, desc: "阅读非虚构类书籍1小时并做笔记" }, 
+                    { name: "个人反思", icon: "🧠", gold: 8, xp: 15, desc: "写下本周3个进步与3个待改进点" },
+                    { name: "深度阅读", icon: "📚", gold: 10, xp: 20, desc: "阅读非虚构类书籍1小时并做笔记" },
                     { name: "休息维护", icon: "📖", gold: 8, xp: 15, desc: "午休或安静独处1小时" }
                 ]
             },
             warrior: {
-                name: "施常澍",
-                avatar: "⚔️",
-                color: "#ff0055", // 霓虹红
-                levels: [
-                    { xp: 0, title: "新兵" }, { xp: 100, title: "突击手" }, 
-                    { xp: 300, title: "皇家卫士" }, { xp: 600, title: "战争之王" }
-                ],
-                // 施常澍 - 日常任务 (11项) - 侧重基础习惯、作息、行为控制
+                name: "荣耀狂战士 (施常澍)", avatar: "⚔️", color: "#ff0055",
+                levels: [{ xp: 0, title: "Lv.1 训练营新兵" }, { xp: 100, title: "Lv.2 帝国钢铁卫士" }, { xp: 300, title: "Lv.3 屠龙勇士" }, { xp: 600, title: "Lv.MAX 银河战神" }],
                 dailyTasks: [
                     { name: "个人清洁", icon: "🧼", gold: 1, xp: 3, desc: "早晚主动洗脸、刷牙、自理" },
-                    { name: "晨间协议: 早起", icon: "⏰", gold: 1, xp: 5, desc: "7:30前完成启动" }, // 专门针对懒床
+                    { name: "晨间协议: 早起", icon: "⏰", gold: 1, xp: 5, desc: "7:10前完成启动" },
                     { name: "休眠模式", icon: "🌙", gold: 1, xp: 5, desc: "21:30前准时入睡" },
                     { name: "整理背包", icon: "🎒", gold: 1, xp: 3, desc: "检查学习物品是否齐全" },
-                    { name: "蔬菜摄入", icon: "🥦", gold: 1, xp: 3, desc: "主动吃完指定蔬菜份量" }, // 专门针对挑食
-
+                    { name: "蔬菜摄入", icon: "🥦", gold: 1, xp: 3, desc: "主动吃完指定蔬菜份量" },
                     { name: "定力力场", icon: "🛡️", gold: 2, xp: 5, desc: "静坐20分钟完成作业" },
                     { name: "准确率校验", icon: "✅", gold: 3, xp: 10, desc: "作业正确率达90%+" },
                     { name: "情报收集: 阅读", icon: "💾", gold: 3, xp: 10, desc: "阅读并汇报故事内容" },
-
                     { name: "情绪控制", icon: "🧘", gold: 2, xp: 5, desc: "遇到挫折不哭闹、不发脾气" },
                     { name: "倾听指令", icon: "👂", gold: 2, xp: 5, desc: "听完父母指令再行动" },
                     { name: "运动模组", icon: "⚽", gold: 2, xp: 5, desc: "户外跑动或运动30分钟" }
                 ],
                 weekendTasks: [
-                    { name: "闪电战(周五)", icon: "⚡", gold: 15, xp: 30, desc: "周五晚清空所有任务" },
-                    { name: "战场清扫", icon: "🧹", gold: 8, xp: 15, desc: "周六中午前完成大扫除" },
+                    { name: "闪电战(周五)", icon: "⚡", gold: 15, xp: 30, desc: "周五晚清空所有周末作业" },
+                    { name: "战场清扫", icon: "🧹", gold: 8, xp: 15, desc: "周六中午前完成所有周末作业" },
                     { name: "屏蔽信号", icon: "📵", gold: 5, xp: 10, desc: "白天不接触手机、平板" },
-                    { name: "玩具归位", icon: "📦", gold: 15, xp: 30, desc: "独立整理并归位所有玩具" }, 
+                    { name: "玩具归位", icon: "📦", gold: 15, xp: 30, desc: "独立整理并归位所有玩具" },
                     { name: "团队合作", icon: "🤝", gold: 8, xp: 15, desc: "与哥哥合作完成一项小任务" },
                     { name: "帮手模式", icon: "🧺", gold: 12, xp: 25, desc: "协助父母完成一项指定家务" },
                     { name: "耐力测试", icon: "🧱", gold: 10, xp: 20, desc: "连续玩积木/画画1小时" },
-                    { name: "安静阅读", icon: "📘", gold: 10, xp: 20, desc: "安静阅读绘本或故事书30分钟" }, 
-                    { name: "故事复述", icon: "🎤", gold: 8, xp: 15, desc: "向父母完整复述一个故事" }, 
+                    { name: "安静阅读", icon: "📘", gold: 10, xp: 20, desc: "安静阅读绘本或故事书30分钟" },
+                    { name: "故事复述", icon: "🎤", gold: 8, xp: 15, desc: "向父母完整复述一个故事" },
                     { name: "休息指令", icon: "😴", gold: 5, xp: 10, desc: "按时完成午睡或安静休息" }
                 ]
             },
@@ -364,9 +361,9 @@
                 { name: "幸运补给箱", icon: "🎁", price: 5, desc: "随机抽取物资或惩罚" },
                 { name: "娱乐模组30m", icon: "🎮", price: 10, desc: "游戏/平板时间" },
                 { name: "能量液 (饮料)", icon: "🧪", price: 15, desc: "可乐/雪碧/牛奶" },
-                { name: "零食配额", icon: "🍬", price: 20, desc: "指定零食一份" }, 
-                { name: "周末权限", icon: "📺", price: 25, desc: "指定观看电视卡通/电影" }, 
-                { name: "临时增援", icon: "👨‍👧‍👦", price: 40, desc: "父母陪伴玩耍30分钟" }, 
+                { name: "零食配额", icon: "🍬", price: 20, desc: "指定零食一份" },
+                { name: "周末权限", icon: "📺", price: 25, desc: "指定观看电视卡通/电影" },
+                { name: "临时增援", icon: "👨‍👧‍👦", price: 40, desc: "父母陪伴玩耍30分钟" },
                 { name: "高级军粮", icon: "🍔", price: 50, desc: "麦当劳/肯德基" },
                 { name: "防御力场", icon: "🛡️", price: 80, desc: "抵消一次父母的批评" },
                 { name: "传说装备", icon: "👾", price: 100, desc: "指定玩具/游戏卡带" },
@@ -374,166 +371,174 @@
             ]
         };
 
-        // ================= 逻辑核心 (包含密码验证) =================
+        // ================= 云端逻辑 =================
         let currentRole = 'mage';
         let currentTab = 'daily';
         let userData = { mage: { gold: 0, xp: 0 }, warrior: { gold: 0, xp: 0 } };
 
-        /**
-         * 密码验证函数：所有加分和扣分操作前必须执行。
-         * @returns {boolean} 验证是否通过
-         */
+        // 更新网络状态图标
+        function updateStatus(type) {
+            const dot = document.getElementById('net-status');
+            const txt = document.getElementById('net-text');
+            if(type === 'syncing') { dot.className = 'status-dot syncing'; txt.innerText = "同步中..."; }
+            else if(type === 'online') { dot.className = 'status-dot online'; txt.innerText = "云端已连接"; }
+            else { dot.className = 'status-dot'; txt.innerText = "离线 / 错误"; }
+        }
+
+        async function init() {
+            updateStatus('syncing');
+            // 检查是否配置了 API URL
+            if(API_URL.includes("您的用户名")) {
+                alert("⚠️ 请注意：您还没有在代码中配置 Worker 的 API 链接！\n目前数据将无法保存！");
+                return;
+            }
+
+            try {
+                const res = await fetch(API_URL);
+                if(res.ok) {
+                    userData = await res.json();
+                    updateStatus('online');
+                } else {
+                    throw new Error("Fetch failed");
+                }
+            } catch(e) {
+                console.error(e);
+                updateStatus('offline');
+                alert("无法连接到云端数据库，请检查网络！");
+            }
+
+            handleRoleSwitch('mage', false);
+            generateRuleTables();
+        }
+
+        async function saveData() {
+            updateStatus('syncing');
+            // 先本地更新UI
+            renderHUD();
+
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+                if(res.ok) updateStatus('online');
+                else throw new Error("Save failed");
+            } catch(e) {
+                alert("⚠️ 数据保存失败！请检查网络，否则刷新后进度会丢失！");
+                updateStatus('offline');
+            }
+        }
+
         function authenticate() {
-            // 使用 prompt 输入，输入类型默认为 text，但在移动端通常会弹出数字键盘
             const input = prompt("【授权验证】\n请家长输入任务确认码 (四位数字):");
-            if (input === null || input === "") {
-                alert("授权取消。");
-                return false;
-            }
-            if (input === PARENT_PIN) {
-                return true;
-            } else {
-                alert("授权码错误！请联系家长。");
-                return false;
-            }
+            if (input === null || input === "") { alert("授权取消。"); return false; }
+            if (input === PARENT_PIN) return true;
+            else { alert("授权码错误！"); return false; }
         }
 
-        function init() {
-            const saved = localStorage.getItem('familyGuildV5');
-            if (saved) userData = JSON.parse(saved);
-            switchRole('mage');
-        }
-
-        function switchRole(role) {
+        // ... UI 渲染逻辑保持不变 ...
+        function handleRoleSwitch(role, shouldScroll = true) {
             currentRole = role;
             const config = gameData[role];
-            
             document.documentElement.style.setProperty('--theme-color', config.color);
-            
             document.getElementById('btn-mage').className = role === 'mage' ? 'cyber-btn active' : 'cyber-btn';
             document.getElementById('btn-warrior').className = role === 'warrior' ? 'cyber-btn active' : 'cyber-btn';
-            
-            renderHUD();
-            renderContent();
+            renderHUD(); renderContent();
+            if (shouldScroll) window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function switchTab(tab) {
+        function handleTabSwitch(tab) {
             currentTab = tab;
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById('tab-' + tab).classList.add('active');
-            renderContent();
+            renderContent(); window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderHUD() {
             const data = userData[currentRole];
             const config = gameData[currentRole];
-            
             let levelInfo = config.levels[0];
-            let nextXp = config.levels[1].xp;
+            let nextXp = config.levels[1] ? config.levels[1].xp : data.xp * 1.5;
             for(let i=0; i<config.levels.length; i++) {
-                if(data.xp >= config.levels[i].xp) {
-                    levelInfo = config.levels[i];
-                    nextXp = config.levels[i+1] ? config.levels[i+1].xp : config.levels[i].xp * 1.5;
-                }
+                if(data.xp >= config.levels[i].xp) { levelInfo = config.levels[i]; nextXp = config.levels[i+1] ? config.levels[i+1].xp : config.levels[i].xp * 1.5; }
             }
-
             document.getElementById('ui-avatar').innerText = config.avatar;
             document.getElementById('ui-name').innerText = config.name;
             document.getElementById('ui-title').innerText = levelInfo.title;
             document.getElementById('ui-gold').innerText = data.gold;
-            
-            const percent = Math.min(100, (data.xp / nextXp) * 100);
+            const xpNeeded = nextXp - data.xp;
+            const displayNeeded = xpNeeded > 0 ? xpNeeded : 0;
+            const totalRange = nextXp - (config.levels[config.levels.indexOf(levelInfo)]?.xp || 0);
+            const currentProgress = data.xp - (config.levels[config.levels.indexOf(levelInfo)]?.xp || 0);
+            let percent = (currentProgress / totalRange) * 100; if(percent > 100) percent = 100;
             document.getElementById('ui-xp-bar').style.width = percent + "%";
-            document.getElementById('ui-xp-txt').innerText = `${data.xp}/${nextXp} XP`; 
+            document.getElementById('ui-xp-txt').innerText = `${data.xp} / ${nextXp} XP (还差 ${displayNeeded})`;
         }
 
         function renderContent() {
-            const container = document.getElementById('content-area');
-            container.innerHTML = '';
-            
+            const container = document.getElementById('content-area'); container.innerHTML = '';
             let list = [];
             if(currentTab === 'daily') list = gameData[currentRole].dailyTasks;
             else if(currentTab === 'weekend') list = gameData[currentRole].weekendTasks;
             else list = gameData.shop;
 
-            list.forEach(item => {
+            list.forEach((item, index) => {
                 const isShop = currentTab === 'shop';
-                // 动作绑定了 authenticate()
-                const action = isShop ? `buy('${item.name}', ${item.price})` : `doTask('${item.name}', ${item.gold}, ${item.xp})`;
-                const priceTag = isShop 
-                    ? `<div class="reward-tag cost-tag">-${item.price} G</div>`
-                    : `<div class="reward-tag">+${item.gold} G / +${item.xp} XP</div>`;
-
-                container.innerHTML += `
-                    <div class="holo-card ${isShop?'shop-border':''}" onclick="${action}">
-                        <div class="holo-icon">${item.icon}</div>
-                        <div class="holo-title">${item.name}</div>
-                        <div class="holo-desc">${item.desc}</div>
-                        ${priceTag}
-                    </div>
-                `;
+                const action = isShop ? `buy(this, '${item.name}', ${item.price})` : `doTask(this, '${item.name}', ${item.gold}, ${item.xp})`;
+                const priceTag = isShop ? `<div class="reward-tag cost-tag">-${item.price} G</div>` : `<div class="reward-tag">+${item.gold} G / +${item.xp} XP</div>`;
+                container.innerHTML += `<div class="holo-card ${isShop?'shop-border':''}" onclick="${action}" data-index="${index}"><div class="holo-icon">${item.icon}</div><div class="holo-title">${item.name}</div><div class="holo-desc">${item.desc}</div>${priceTag}</div>`;
             });
         }
 
-        function doTask(name, gold, xp) {
-            // 1. 孩子进行初始确认
-            if(!confirm(`家长确认:\n完成任务: [${name}] ?\n完成后将获得 ${gold} 金币, ${xp} 经验。`)) return;
-
-            // 2. 家长进行授权验证 (新步骤)
-            if (!authenticate()) return; 
-
-            // 3. 授权通过，执行奖励
-            userData[currentRole].gold += gold;
-            userData[currentRole].xp += xp;
-            save();
+        function doTask(element, name, gold, xp) {
+            if(!confirm(`家长确认:\n完成任务: [${name}] ?`)) return;
+            if (!authenticate()) return;
+            element.classList.add('success-flash'); setTimeout(() => element.classList.remove('success-flash'), 500);
+            userData[currentRole].gold += gold; userData[currentRole].xp += xp;
+            saveData(); // 保存到云端
             alert(`任务完成!\n获得 ${gold} 金币, ${xp} 经验!`);
         }
 
-        function buy(name, price) {
-            if(userData[currentRole].gold < price) {
-                alert("⚠️ 资金不足 (金币不足)\n请完成更多任务获取金币");
-                return;
-            }
-            
-            if(!confirm(`确认购买 [${name}]，消耗 ${price} 金币?`)) return;
-            
-            // 购买前进行授权验证 (新步骤)
-            if (!authenticate()) return; 
-
-            // 执行购买逻辑
+        function buy(element, name, price) {
+            if(userData[currentRole].gold < price) { alert("⚠️ 资金不足!"); return; }
+            if(!confirm(`确认购买 [${name}]?`)) return;
+            if (!authenticate()) return;
+            element.classList.add('success-flash'); setTimeout(() => element.classList.remove('success-flash'), 500);
+            userData[currentRole].gold -= price; saveData(); // 保存到云端
+            let msg = `交易成功! 请找父母领取: ${name}`;
             if(name.includes("补给箱")) {
-                userData[currentRole].gold -= price;
-                save();
-                
                 const rand = Math.random();
-                let msg = "";
                 if(rand < 0.5) msg = "💨 空箱子... (谢谢惠顾)";
-                else if(rand < 0.8) { msg = "💰 少量回血 (+3金币)"; userData[currentRole].gold += 3; }
+                else if(rand < 0.8) { msg = "💰 少量回血 (+3金币)"; userData[currentRole].gold += 3; saveData(); }
                 else if(rand < 0.95) msg = "🥤 获得补给: 饮料一瓶!";
-                else msg = "🔥 传说物品: 免做作业券!!!";
-                setTimeout(() => alert(msg), 300);
-            } else {
-                userData[currentRole].gold -= price;
-                save();
-                alert(`交易成功! 请找父母领取物品: ${name}`);
+                else msg = "🧧 传说大奖: 现金红包 5元!!!";
             }
-        }
-
-        function save() {
-            // 数据存储在浏览器本地（localStorage），托管到 CF Pages 后依然有效。
-            localStorage.setItem('familyGuildV5', JSON.stringify(userData));
-            renderHUD();
+            setTimeout(() => alert(msg), 300);
         }
 
         function resetData() {
-            // 重置功能也受密码保护 (新步骤)
-            if (!authenticate()) return; 
+            if (!authenticate()) return;
             if(confirm("⚠️ 警告: 将清除所有系统数据! 确认清除吗?")) {
                 userData = { mage: { gold: 0, xp: 0 }, warrior: { gold: 0, xp: 0 } };
-                save();
+                saveData(); // 保存到云端
                 alert("系统已重置，数据归零。");
             }
         }
+
+        function generateRuleTables() {
+            const container = document.getElementById('level-table-container');
+            let html = '';
+            html += `<div class="role-header">${gameData.mage.name}</div><table class="level-table"><tr><th>所需XP</th><th>头衔</th></tr>`;
+            gameData.mage.levels.forEach(l => { html += `<tr><td>${l.xp}</td><td>${l.title}</td></tr>`; });
+            html += '</table>';
+            html += `<div class="role-header warrior">${gameData.warrior.name}</div><table class="level-table"><tr><th>所需XP</th><th>头衔</th></tr>`;
+            gameData.warrior.levels.forEach(l => { html += `<tr><td>${l.xp}</td><td>${l.title}</td></tr>`; });
+            html += '</table>';
+            container.innerHTML = html;
+        }
+        function openRules() { document.getElementById('rules-modal').style.display = 'flex'; }
+        function closeRules() { document.getElementById('rules-modal').style.display = 'none'; }
 
         init();
     </script>
